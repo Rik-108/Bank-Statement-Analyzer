@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Statement Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/styles.css">
+    <!-- Import Google Fonts for modern typography -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap">
+    <style>
+        /* Custom styles for glassmorphism, animations, and blocks */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .btn-hover {
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+        .btn-hover:hover {
+            transform: translateY(-2px);
+            background-color: #4f46e5;
+        }
+        .loading-spinner {
+            display: none;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #6366f1;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .result-block {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(238, 242, 255, 0.8));
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .result-block:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+        .insights-block {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(236, 252, 203, 0.8));
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-200 via-purple-200 to-pink-200 min-h-screen flex flex-col items-center justify-center p-4 md:p-6">
+    <div class="glass-card rounded-2xl p-8 max-w-3xl w-full fade-in">
+        <h1 class="text-4xl md:text-5xl font-bold text-indigo-800 mb-4 text-center">Bank Statement Analyzer</h1>
+        <p class="text-gray-600 text-center mb-4 text-sm md:text-base">Current Date and Time: Thursday, May 22, 2025, 12:24 AM IST</p>
+        <p class="text-gray-700 text-center mb-8 text-base md:text-lg">Upload your bank statement in CSV format to get a detailed financial summary and actionable insights.</p>
+
+        <div class="flex flex-col items-center space-y-6">
+            <label for="file-input" class="text-indigo-700 font-semibold text-lg">Select CSV File:</label>
+            <input type="file" id="file-input" name="file" accept=".csv" required class="border border-gray-300 rounded-lg p-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full max-w-md bg-white/80">
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center">
+                    <button id="analyze-btn" class="bg-indigo-600 text-white font-semibold py-3 px-8 rounded-lg btn-hover shadow-lg">Analyze</button>
+                    <div id="analyze-spinner" class="loading-spinner"></div>
+                </div>
+                <div class="flex items-center">
+                    <button id="fraud-detection-btn" class="bg-red-600 text-white font-semibold py-3 px-8 rounded-lg btn-hover shadow-lg">Detect Fraud</button>
+                    <div id="fraud-spinner" class="loading-spinner"></div>
+                </div>
+                <div class="flex items-center">
+                    <button id="loan-eligibility-btn" class="bg-green-600 text-white font-semibold py-3 px-8 rounded-lg btn-hover shadow-lg">Assess Loan Eligibility</button>
+                    <div id="loan-spinner" class="loading-spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="results" class="mt-10 hidden space-y-6">
+            <h2 class="text-2xl md:text-3xl font-semibold text-indigo-800 mb-6 text-center">Analysis Results</h2>
+            <!-- Summary Block -->
+            <div class="result-block p-6 rounded-xl shadow-md border border-gray-100">
+                <h3 class="text-xl font-medium text-gray-800 mb-3 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Summary
+                </h3>
+                <pre id="summary" class="text-gray-700 whitespace-pre-wrap text-sm md:text-base"></pre>
+            </div>
+            <!-- Financial Insights Block -->
+            <div class="result-block insights-block p-6 rounded-xl shadow-md border border-gray-100">
+                <h3 class="text-xl font-medium text-gray-800 mb-3 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Financial Insights
+                </h3>
+                <pre id="insights" class="text-gray-700 whitespace-pre-wrap text-sm md:text-base"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const fraudBtn = document.getElementById('fraud-detection-btn');
+        const loanBtn = document.getElementById('loan-eligibility-btn');
+        const analyzeSpinner = document.getElementById('analyze-spinner');
+        const fraudSpinner = document.getElementById('fraud-spinner');
+        const loanSpinner = document.getElementById('loan-spinner');
+        const results = document.getElementById('results');
+        const summary = document.getElementById('summary');
+        const insights = document.getElementById('insights');
+
+        // Function to toggle loading state
+        function toggleLoading(endpoint, isLoading) {
+            if (endpoint === 'analyze') {
+                analyzeSpinner.style.display = isLoading ? 'block' : 'none';
+                analyzeBtn.disabled = isLoading;
+                fraudBtn.disabled = isLoading;
+                loanBtn.disabled = isLoading;
+            } else if (endpoint === 'detect_fraud') {
+                fraudSpinner.style.display = isLoading ? 'block' : 'none';
+                analyzeBtn.disabled = isLoading;
+                fraudBtn.disabled = isLoading;
+                loanBtn.disabled = isLoading;
+            } else {
+                loanSpinner.style.display = isLoading ? 'block' : 'none';
+                analyzeBtn.disabled = isLoading;
+                fraudBtn.disabled = isLoading;
+                loanBtn.disabled = isLoading;
+            }
+        }
+
+        // Function to send CSV file to the backend and display the result
+        async function analyze(endpoint) {
+            const fileInput = document.getElementById('file-input');
+            if (!fileInput.files.length) {
+                summary.textContent = 'Error: Please upload a CSV file';
+                insights.textContent = '';
+                results.classList.remove('hidden');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            toggleLoading(endpoint, true);
+
+            try {
+                const response = await fetch(`/${endpoint}/`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (endpoint === 'analyze') {
+                    summary.textContent = data.summary || 'No summary available';
+                    insights.textContent = data.promptlab_insight || 'No insights available';
+                } else {
+                    const specificInsight = endpoint === 'detect_fraud' ? data.fraud_insight : data.loan_eligibility_insight;
+                    const specificLabel = endpoint === 'detect_fraud' ? 'Fraud Detection Analysis' : 'Loan Eligibility Assessment';
+                    summary.textContent = data.summary || 'No summary available';
+                    insights.textContent = `${data.financial_analysis || 'No financial analysis available'}\n\n${specificLabel}:\n${specificInsight || 'No specific insight available'}`;
+                }
+                results.classList.remove('hidden');
+            } catch (error) {
+                console.error('Error:', error);
+                summary.textContent = 'Failed to analyze the statement: ' + error.message;
+                insights.textContent = '';
+                results.classList.remove('hidden');
+            } finally {
+                toggleLoading(endpoint, false);
+            }
+        }
+
+        // Event listeners for the buttons
+        analyzeBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            analyze('analyze');
+        });
+
+        fraudBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            analyze('detect_fraud');
+        });
+
+        loanBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            analyze('assess_loan_eligibility');
+        });
+    </script>
+</body>
+</html>

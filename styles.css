@@ -1,0 +1,22 @@
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+pre {
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+button:hover {
+    transform: scale(1.05);
+}
+
+#results {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
